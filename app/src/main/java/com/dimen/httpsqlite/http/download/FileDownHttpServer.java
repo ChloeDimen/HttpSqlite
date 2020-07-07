@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 文件名：com.dimen.customhttp.http.download
@@ -37,6 +38,10 @@ public class FileDownHttpServer implements IHttpServer {
     private byte[] requestData;
     //获取网络的回调
     private HttpResponseHandler mHttpResponseHandler = new HttpResponseHandler();
+    /**
+     * 增加方法
+     */
+    private AtomicBoolean pause=new AtomicBoolean(false);
 
     @Override
     public void setUrl(String url) {
@@ -103,12 +108,12 @@ public class FileDownHttpServer implements IHttpServer {
 
     @Override
     public boolean isPause() {
-        return false;
+        return pause.get();
     }
 
     @Override
     public void pause() {
-
+        pause.compareAndSet(false,true);
     }
 
     @Override

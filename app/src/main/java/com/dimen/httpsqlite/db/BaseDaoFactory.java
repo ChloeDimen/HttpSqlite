@@ -4,6 +4,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 文件名：com.dimen.customsqlite.db
@@ -21,8 +24,15 @@ public class BaseDaoFactory {
 
     public static BaseDaoFactory mBaseDaoFactory = new BaseDaoFactory();
 
-    public BaseDaoFactory() {
-        sqliteDatabasePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator+ "user.db";
+    private Map<String, BaseDao> map = Collections.synchronizedMap(new HashMap<String, BaseDao>());
+
+    private BaseDaoFactory() {
+      //  sqliteDatabasePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator+ "user.db";
+        File file=new File(Environment.getExternalStorageDirectory(),"update");
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        sqliteDatabasePath = file.getAbsolutePath() + "/user.db";
         openDatabase();
 
 
@@ -31,9 +41,13 @@ public class BaseDaoFactory {
     public synchronized <T extends BaseDao<M>, M> T getDataHelper(Class<T> clazz, Class<M> entityClazz) {
 
         BaseDao baseDao = null;
+        if (map.get(clazz.getSimpleName()) != null) {
+            return (T) map.get(clazz.getSimpleName());
+        }
         try {
             baseDao = clazz.newInstance();
             baseDao.init(entityClazz, mSQLiteDatabase);
+            map.put(clazz.getSimpleName(), baseDao);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {

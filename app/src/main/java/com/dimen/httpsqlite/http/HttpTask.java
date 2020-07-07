@@ -7,6 +7,7 @@ import com.dimen.httpsqlite.http.interfaces.IHttpListener;
 import com.dimen.httpsqlite.http.interfaces.IHttpServer;
 
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.FutureTask;
 
 /**
  * 文件名：com.dimen.customhttp.http
@@ -17,6 +18,7 @@ import java.io.UnsupportedEncodingException;
 public class HttpTask <T> implements Runnable{
 
     private IHttpServer mIHttpServer;
+    private FutureTask futureTask;
     public HttpTask(RequestHodler<T> requestHolder){
         mIHttpServer = requestHolder.getHttpServer();
         mIHttpServer.setHttpListener(requestHolder.getHttpListener());
@@ -38,8 +40,36 @@ public class HttpTask <T> implements Runnable{
         }
 
     }
+
     @Override
     public void run() {
         mIHttpServer.execute();
+    }
+
+    /**
+     * 新增方法
+     */
+    public void start()
+    {
+        futureTask=new FutureTask(this,null);
+        try {
+            ThreadPoolManager.getInstance().execute(futureTask);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * 新增方法
+     */
+    public  void pause()
+    {
+        mIHttpServer.pause();
+        if(futureTask!=null)
+        {
+            ThreadPoolManager.getInstance().removeTask(futureTask);
+        }
+
     }
 }
